@@ -6,6 +6,7 @@ import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.*
 import android.widget.*
+import android.text.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -23,6 +24,7 @@ class MainActivity : AppCompatActivity() {
  private var scrollPending=0f; private var scrollFrame=false
  private val points=mutableMapOf<Int,Pair<Float,Float>>(); private var moved=false; private var maxPointers=0
  private var filteredX=0f; private var filteredY=0f; private var scrollRemainder=0f; private var pendingX=0f; private var pendingY=0f; private var frameQueued=false
+ private var textUpdating=false; private var streamedText=""
 
  override fun onCreate(state:Bundle?){super.onCreate(state);window.statusBarColor=ink;window.navigationBarColor=ink;buildUi()}
  override fun onPause(){scrollPending=0f;pendingX=0f;pendingY=0f;points.clear();super.onPause()}
@@ -48,7 +50,20 @@ class MainActivity : AppCompatActivity() {
   val typing=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL}
   val entry=EditText(this).apply{setHint("Type into the active PC app…");setHintTextColor(muted);setTextColor(white);textSize=14f;setSingleLine(true);imeOptions=android.view.inputmethod.EditorInfo.IME_ACTION_DONE;setPadding(dp(14),0,dp(10),0);background=round(panel,15,line)}
   typing.addView(entry,LinearLayout.LayoutParams(0,dp(52),1f).apply{setMargins(0,0,dp(8),0)})
-  typing.addView(button("SEND",true){val value=entry.text.toString();if(value.isNotEmpty()){ws?.send(JSONObject().put("type","text").put("text",value).toString());entry.text.clear() }},LinearLayout.LayoutParams(dp(82),dp(52)))
+  typing.addView(button("CLEAR",false){textUpdating=true;entry.text.clear();streamedText="";textUpdating=false},LinearLayout.LayoutParams(dp(82),dp(52)))
+  entry.addTextChangedListener(object:TextWatcher{
+   override fun beforeTextChanged(s:CharSequence?,start:Int,count:Int,after:Int){}
+   override fun onTextChanged(s:CharSequence?,start:Int,before:Int,count:Int){}
+   override fun afterTextChanged(editable:Editable?){
+    if(textUpdating)return
+     val current=editable?.toString() ?: ""
+    var common=0
+    while(common<streamedText.length&&common<current.length&&streamedText[common]==current[common])common++
+    repeat(streamedText.length-common){send("key","backspace")}
+    if(current.length>common)ws?.send(JSONObject().put("type","text").put("text",current.substring(common)).toString())
+    streamedText=current
+   }
+  })
   root.addView(typing,LinearLayout.LayoutParams(-1,-2).apply{setMargins(0,dp(12),0,dp(8))})
   root.addView(button("ENTER  ↵",false){send("key","enter")},LinearLayout.LayoutParams(-1,dp(46)).apply{setMargins(0,0,0,dp(10))})
   root.addView(label("Glide Remote · Touch, scroll, control.",10f,muted,false).apply{gravity=17;setPadding(0,dp(8),0,0)})

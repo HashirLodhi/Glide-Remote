@@ -29,7 +29,8 @@ These builds are not publisher-signed: Windows may display an unrecognized-app w
 - Two-finger tap or **RIGHT CLICK**: right click.
 - Two-finger drag: scroll.
 - Media row: previous, play/pause, next, volume down, mute, and volume up.
-- Text field: first select the target application on the PC, then type on the phone and tap **SEND**. Text is injected into the active PC window.
+- Text field: first click the target text field on the PC, then type on the phone. Characters appear immediately; deletions send Backspace.
+- **CLEAR** resets the phone's typing field without deleting text on the PC.
 - **ENTER**: press Enter in the active PC application.
 
 The Android app is touch-only; gyro/air-mouse mode has been removed.
@@ -88,7 +89,9 @@ Messages are JSON objects sent through WebSocket. The examples below illustrate 
 | `text` | `{"type":"text","text":"hello"}` | Text limited to 400 characters and sent to the active Windows app |
 | `ready` (server to client) | `{"type":"ready","resumeToken":"..."}` | Sent after authentication |
 
-Allowed keys: `enter`, `volumeup`, `volumedown`, `volumemute`, `playpause`, `next`, and `previous`. Text is limited to 400 characters per message. Payloads are limited to 1,024 bytes. More than 240 messages per second closes the connection. Malformed or unknown messages are ignored.
+Allowed keys: `enter`, `backspace`, `volumeup`, `volumedown`, `volumemute`, `playpause`, `next`, and `previous`. Text is limited to 400 characters per message. Payloads are limited to 1,024 bytes. More than 240 messages per second closes the connection. Malformed or unknown messages are ignored.
+
+Text uses Unicode `SendInput` events with the native `INPUT` union layout, including the larger mouse member required for correct structure sizing on 64-bit Windows. The helper reads UTF-8 JSON, checks the number of accepted events, and reports input failures through stderr. Enter and Backspace use virtual-key events. `tools/test-text-input.ps1` verifies real character delivery in a disposable Windows text box, including Unicode, special characters, incremental typing, Enter, Backspace, and newlines. Run it with `powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -File tools/test-text-input.ps1`; let its temporary window retain focus until it closes.
 
 ## Source layout
 

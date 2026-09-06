@@ -11,7 +11,7 @@ function normalizeMessage(raw) {
   if (message.type === 'move') return { type: 'move', dx: clamp(message.dx, 120), dy: clamp(message.dy, 120) };
   if (message.type === 'scroll') return { type: 'scroll', delta: clamp(message.delta, 8) };
   if (message.type === 'click' && ['left', 'right'].includes(message.button)) return { type: 'click', button: message.button };
-  if (message.type === 'key' && (message.key === 'enter' || MEDIA_KEYS.has(message.key))) return { type: 'key', key: message.key };
+  if (message.type === 'key' && (['enter', 'backspace'].includes(message.key) || MEDIA_KEYS.has(message.key))) return { type: 'key', key: message.key };
   if (message.type === 'text' && typeof message.text === 'string') return { type: 'text', text: message.text.slice(0, TEXT_LIMIT) };
   return null;
 }
