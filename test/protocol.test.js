@@ -1,0 +1,16 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const { normalizeMessage } = require('../src/protocol');
+test('rejects malformed and unknown messages',()=>{assert.equal(normalizeMessage('{'),null);assert.equal(normalizeMessage('{"type":"nope"}'),null)});
+test('clamps movement and scroll input',()=>{assert.deepEqual(normalizeMessage('{"type":"move","dx":999,"dy":-999}'),{type:'move',dx:120,dy:-120});assert.deepEqual(normalizeMessage('{"type":"scroll","delta":20}'),{type:'scroll',delta:8})});
+test('allows only supported clicks and media keys',()=>{assert.deepEqual(normalizeMessage('{"type":"click","button":"right"}'),{type:'click',button:'right'});assert.equal(normalizeMessage('{"type":"key","key":"delete"}'),null)});
+test('limits device labels',()=>{assert.equal(normalizeMessage(JSON.stringify({type:'hello',device:'x'.repeat(100)})).device.length,60)});
+test('normalizes missing and non-numeric values safely',()=>{
+  assert.deepEqual(normalizeMessage('{"type":"move","dx":"nope","dy":null}'),{type:'move',dx:0,dy:0});
+  assert.deepEqual(normalizeMessage('{"type":"scroll","delta":-999}'),{type:'scroll',delta:-8});
+  assert.equal(normalizeMessage('null'),null);
+});
+test('rejects unsupported button and key variants',()=>{
+  assert.equal(normalizeMessage('{"type":"click","button":"middle"}'),null);
+  assert.equal(normalizeMessage('{"type":"key","key":"VolumeUp"}'),null);
+});

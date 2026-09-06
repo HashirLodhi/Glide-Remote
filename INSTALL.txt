@@ -1,0 +1,23 @@
+GLIDE REMOTE
+
+PC: Install Glide Remote.exe on Windows 10/11 (64-bit).
+Node.js and Android Studio are not required on the receiving devices.
+Phone: Install Glide Remote.apk on Android 8 or newer.
+Android may ask you to allow installation from the app opening the APK.
+
+Connect both devices to the same trusted home Wi-Fi (not a guest network).
+Open Glide Remote on Windows. If Windows Firewall asks, allow Private networks.
+Set your trusted home Wi-Fi network profile to Private in Windows Settings.
+If no prompt appears, allow the installed Glide Remote application through
+Windows Defender Firewall for Private networks. Do not disable the firewall.
+Open the phone app and scan the PC's QR code immediately.
+If pairing fails, click Generate new code on the PC and scan again:
+codes expire after 10 minutes and can only be used once.
+
+Use one finger for the cursor, two fingers to scroll, and tap to click.
+Keep the Windows app open while using the remote.
+
+This Windows installer is not publisher-signed, so Windows may warn about
+an unrecognized app. Only install copies you trust.
+The APK is a debug-signed sideload build, not a Google Play release.
+This package is for Windows PCs and Android phones, not macOS or iPhones.

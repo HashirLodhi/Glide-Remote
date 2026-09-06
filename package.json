@@ -1,0 +1,40 @@
+{
+  "name": "glide-remote",
+  "version": "0.3.0",
+  "description": "Use your phone as a fast, private PC remote over local Wi-Fi.",
+  "author": "Glide Remote",
+  "productName": "Glide Remote",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron .",
+    "test": "node --test",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder --win nsis"
+  },
+  "dependencies": {
+    "qrcode": "^1.5.4",
+    "ws": "^8.18.3"
+  },
+  "build": {
+    "appId": "com.glide.remote",
+    "artifactName": "Glide Remote.${ext}",
+    "extraResources": [{ "from": "src/windows-input.ps1", "to": "windows-input.ps1" }],
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "android/app/src/main/res/drawable-nodpi/ic_launcher.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  },
+  "devDependencies": {
+    "electron": "^44.1.0",
+    "electron-builder": "^26.15.3"
+  }
+}
