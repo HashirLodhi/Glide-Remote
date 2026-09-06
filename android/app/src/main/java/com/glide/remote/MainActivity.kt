@@ -1,4 +1,4 @@
-package com.glide.remote
+﻿package com.glide.remote
 
 import android.graphics.Color
 import android.graphics.Typeface
@@ -40,12 +40,18 @@ class MainActivity : AppCompatActivity() {
   val mediaTitle=LinearLayout(this).apply{gravity=Gravity.CENTER_VERTICAL};mediaTitle.addView(label("MEDIA",11f,muted,true).apply{letterSpacing=.16f},LinearLayout.LayoutParams(0,-2,1f));mediaTitle.addView(label("QUICK CONTROLS",10f,muted,false));root.addView(mediaTitle)
   val media=LinearLayout(this);listOf("previous" to "‹‹","playpause" to "▶","next" to "››","volumedown" to "−","volumemute" to "M","volumeup" to "+").forEach{(key,glyph)->media.addView(button(glyph,key=="playpause"){send("key",key)},LinearLayout.LayoutParams(0,dp(48),1f).apply{setMargins(dp(3),0,dp(3),0)})};root.addView(media,LinearLayout.LayoutParams(-1,-2).apply{setMargins(-dp(3),dp(9),-dp(3),dp(14))})
   val pad=FrameLayout(this).apply{background=round(Color.rgb(29,30,27),24,line);isHapticFeedbackEnabled=true;setOnTouchListener{v,e->touch(v,e)}}
-  val hint=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;gravity=Gravity.CENTER;isClickable=false};hint.addView(label("⌁",38f,lime,false).apply{gravity=17});hint.addView(label("GLIDE ANYWHERE",13f,white,true).apply{gravity=17;letterSpacing=.12f});hint.addView(label("Tap to click  ·  Two fingers to scroll",11f,muted,false).apply{gravity=17;setPadding(0,dp(8),0,0)});pad.addView(hint,FrameLayout.LayoutParams(-1,-1));root.addView(pad,LinearLayout.LayoutParams(-1,0,1f))
+  val hint=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;gravity=Gravity.CENTER;isClickable=false};hint.addView(label("⌁",38f,lime,false).apply{gravity=17});hint.addView(label("GLIDE ANYWHERE",13f,white,true).apply{gravity=17;letterSpacing=.12f});hint.addView(label("Tap to click  ·  Two fingers to scroll",11f,muted,false).apply{gravity=17;setPadding(0,dp(8),0,0)});pad.addView(hint,FrameLayout.LayoutParams(-1,-1));root.addView(pad,LinearLayout.LayoutParams(-1,dp(360)))
   val clicks=LinearLayout(this);clicks.addView(button("LEFT CLICK",false){send("click","left")},LinearLayout.LayoutParams(0,dp(56),1f).apply{setMargins(0,0,dp(5),0)});clicks.addView(button("RIGHT CLICK",false){send("click","right")},LinearLayout.LayoutParams(0,dp(56),1f).apply{setMargins(dp(5),0,0,0)});root.addView(clicks,LinearLayout.LayoutParams(-1,-2).apply{setMargins(0,dp(12),0,dp(10))})
-  root.addView(label("Glide Remote · Touch, scroll, control.",10f,muted,false).apply{gravity=17;setPadding(0,dp(8),0,0)})
   val scroll=ScrollView(this).apply{isFillViewport=true;setBackgroundColor(ink);addView(root,FrameLayout.LayoutParams(-1,-2))}
   pad.minimumHeight=dp(180)
   pad.setOnTouchListener{v,e->v.parent.requestDisallowInterceptTouchEvent(e.actionMasked!=MotionEvent.ACTION_UP&&e.actionMasked!=MotionEvent.ACTION_CANCEL);touch(v,e)}
+  val typing=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL}
+  val entry=EditText(this).apply{setHint("Type into the active PC app…");setHintTextColor(muted);setTextColor(white);textSize=14f;setSingleLine(true);imeOptions=android.view.inputmethod.EditorInfo.IME_ACTION_DONE;setPadding(dp(14),0,dp(10),0);background=round(panel,15,line)}
+  typing.addView(entry,LinearLayout.LayoutParams(0,dp(52),1f).apply{setMargins(0,0,dp(8),0)})
+  typing.addView(button("SEND",true){val value=entry.text.toString();if(value.isNotEmpty()){ws?.send(JSONObject().put("type","text").put("text",value).toString());entry.text.clear() }},LinearLayout.LayoutParams(dp(82),dp(52)))
+  root.addView(typing,LinearLayout.LayoutParams(-1,-2).apply{setMargins(0,dp(12),0,dp(8))})
+  root.addView(button("ENTER  ↵",false){send("key","enter")},LinearLayout.LayoutParams(-1,dp(46)).apply{setMargins(0,0,0,dp(10))})
+  root.addView(label("Glide Remote · Touch, scroll, control.",10f,muted,false).apply{gravity=17;setPadding(0,dp(8),0,0)})
   setContentView(scroll)
  }
 
@@ -94,3 +100,4 @@ class MainActivity : AppCompatActivity() {
  private fun dp(v:Int)=(v*resources.displayMetrics.density).toInt()
  override fun onDestroy(){ws?.close(1000,"App closed");client.dispatcher.executorService.shutdown();super.onDestroy()}
 }
+

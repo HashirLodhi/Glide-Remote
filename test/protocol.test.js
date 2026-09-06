@@ -4,6 +4,7 @@ const { normalizeMessage } = require('../src/protocol');
 test('rejects malformed and unknown messages',()=>{assert.equal(normalizeMessage('{'),null);assert.equal(normalizeMessage('{"type":"nope"}'),null)});
 test('clamps movement and scroll input',()=>{assert.deepEqual(normalizeMessage('{"type":"move","dx":999,"dy":-999}'),{type:'move',dx:120,dy:-120});assert.deepEqual(normalizeMessage('{"type":"scroll","delta":20}'),{type:'scroll',delta:8})});
 test('allows only supported clicks and media keys',()=>{assert.deepEqual(normalizeMessage('{"type":"click","button":"right"}'),{type:'click',button:'right'});assert.equal(normalizeMessage('{"type":"key","key":"delete"}'),null)});
+test('allows enter and bounded text input',()=>{assert.deepEqual(normalizeMessage('{"type":"key","key":"enter"}'),{type:'key',key:'enter'});assert.equal(normalizeMessage(JSON.stringify({type:'text',text:'x'.repeat(500)})).text.length,400)});
 test('limits device labels',()=>{assert.equal(normalizeMessage(JSON.stringify({type:'hello',device:'x'.repeat(100)})).device.length,60)});
 test('normalizes missing and non-numeric values safely',()=>{
   assert.deepEqual(normalizeMessage('{"type":"move","dx":"nope","dy":null}'),{type:'move',dx:0,dy:0});

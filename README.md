@@ -29,6 +29,8 @@ These builds are not publisher-signed: Windows may display an unrecognized-app w
 - Two-finger tap or **RIGHT CLICK**: right click.
 - Two-finger drag: scroll.
 - Media row: previous, play/pause, next, volume down, mute, and volume up.
+- Text field: first select the target application on the PC, then type on the phone and tap **SEND**. Text is injected into the active PC window.
+- **ENTER**: press Enter in the active PC application.
 
 The Android app is touch-only; gyro/air-mouse mode has been removed.
 
@@ -82,10 +84,11 @@ Messages are JSON objects sent through WebSocket. The examples below illustrate 
 | `move` | `{"type":"move","dx":4.5,"dy":-2}` | Each axis clamped to ±120 |
 | `scroll` | `{"type":"scroll","delta":0.15}` | Delta clamped to ±8 |
 | `click` | `{"type":"click","button":"left"}` | Only `left` and `right` accepted |
-| `key` | `{"type":"key","key":"playpause"}` | Only allowlisted media keys accepted |
+| `key` | `{"type":"key","key":"playpause"}` or `{"type":"key","key":"enter"}` | Only allowlisted media keys and Enter accepted |
+| `text` | `{"type":"text","text":"hello"}` | Text limited to 400 characters and sent to the active Windows app |
 | `ready` (server to client) | `{"type":"ready","resumeToken":"..."}` | Sent after authentication |
 
-Allowed media keys: `volumeup`, `volumedown`, `volumemute`, `playpause`, `next`, and `previous`. Payloads are limited to 1,024 bytes. More than 240 messages per second closes the connection. Malformed or unknown messages are ignored.
+Allowed keys: `enter`, `volumeup`, `volumedown`, `volumemute`, `playpause`, `next`, and `previous`. Text is limited to 400 characters per message. Payloads are limited to 1,024 bytes. More than 240 messages per second closes the connection. Malformed or unknown messages are ignored.
 
 ## Source layout
 
