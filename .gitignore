@@ -16,3 +16,5 @@ release/
 .env
 .env.*
 Screenshot_*.png
+!setup/*.exe
+!setup/*.apk
