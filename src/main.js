@@ -42,14 +42,20 @@ function queueMove(ws, message) {
   ws.pendingMove.dx += message.dx;
   ws.pendingMove.dy += message.dy;
   if (ws.moveTimer) return;
-  ws.moveTimer = setTimeout(() => {
-    ws.moveTimer = null;
-    if (session?.socket !== ws || !ws.pendingMove) return;
-    const move = ws.pendingMove;
-    ws.pendingMove = null;
-    sendInput({ type: 'move', dx: Math.max(-120, Math.min(120, move.dx)), dy: Math.max(-120, Math.min(120, move.dy)) });
-  }, 8);
+  ws.moveTimer = setTimeout(() => flushMove(ws), 8);
 }
+function flushMove(ws) {
+  clearTimeout(ws.moveTimer); ws.moveTimer = null;
+  const move = ws.pendingMove; ws.pendingMove = null;
+  if (session?.socket === ws && move) sendInput({ type: 'move', dx: Math.max(-120, Math.min(120, move.dx)), dy: Math.max(-120, Math.min(120, move.dy)) });
+}
+function releaseButton(ws) {
+  if (!ws) return;
+  flushMove(ws);
+  if (ws.leftDown) sendInput({ type: 'button', button: 'left', action: 'up' });
+  ws.leftDown = false;
+}
+
 function notifyDesktop() {
   if (!mainWindow || mainWindow.isDestroyed()) return;
   mainWindow.webContents.send('session-status', { connected: Boolean(session?.socket), device: session?.device || null, error: inputError });
@@ -63,7 +69,11 @@ function handleMessage(ws, raw) {
   if (!message) return;
   if (message.type === 'hello') { session.device = message.device; notifyDesktop(); }
   else if (message.type === 'move') queueMove(ws, message);
-  else sendInput(message);
+  else {
+    flushMove(ws);
+    if (message.type === 'button') ws.leftDown = message.action === 'down';
+    sendInput(message);
+  }
 }
 function securityHeaders(contentType) {
   return {
@@ -87,6 +97,7 @@ function serveStatic(req, res) {
   if (req.method === 'HEAD') res.end(); else fs.createReadStream(path.join(__dirname, 'mobile', item[0])).pipe(res);
 }
 async function newSession() {
+  releaseButton(session?.socket);
   session?.socket?.close(1000, 'New pairing session');
   const pairingToken = randomToken(), createdAt = Date.now();
   const url = `http://${localAddress()}:${server.address().port}/?token=${pairingToken}`;
@@ -115,11 +126,12 @@ function startServer() {
     });
     wss.on('connection', (ws, req) => {
       if (req.authType === 'pair') { session.resumeToken = randomToken(); session.pairingToken = null; }
+      releaseButton(session.socket);
       session.socket?.close(1000, 'Reconnecting');
       session.socket = ws; ws.isAlive = true; ws.rateWindow = Date.now(); ws.rateCount = 0;
       ws.on('pong', () => { ws.isAlive = true; });
       ws.on('message', (raw) => handleMessage(ws, raw));
-      ws.on('close', () => { clearTimeout(ws.moveTimer); ws.moveTimer = null; if (session?.socket === ws) { session.socket = null; session.device = null; notifyDesktop(); } });
+      ws.on('close', () => { clearTimeout(ws.moveTimer); ws.moveTimer = null; if (session?.socket === ws) { releaseButton(ws); session.socket = null; session.device = null; notifyDesktop(); } });
       ws.send(JSON.stringify({ type: 'ready', resumeToken: session.resumeToken }));
       notifyDesktop();
     });
@@ -140,6 +152,6 @@ app.whenReady().then(async () => {
   app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
 }).catch((error) => { console.error('Glide failed to start:', error); app.quit(); });
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
-app.on('before-quit', () => { app.isQuitting = true; clearInterval(heartbeat); for (const ws of wss?.clients || []) ws.terminate(); wss?.close(); server?.close(); inputHelper?.kill(); });
+app.on('before-quit', () => { app.isQuitting = true; releaseButton(session?.socket); clearInterval(heartbeat); for (const ws of wss?.clients || []) ws.terminate(); wss?.close(); server?.close(); inputHelper?.kill(); });
 
 module.exports = { safeEqual, securityHeaders };

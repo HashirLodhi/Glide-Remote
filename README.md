@@ -32,6 +32,9 @@ These builds are not publisher-signed: Windows may display an unrecognized-app w
 - Text field: first click the target text field on the PC, then type on the phone. Characters appear immediately; deletions send Backspace.
 - **CLEAR** resets the phone's typing field without deleting text on the PC.
 - **ENTER**: press Enter in the active PC application.
+- **BACKSPACE** (Android): removes the selected text or previous character in the phone typing field and streams the edit to the PC. With an empty phone field, sends Backspace directly to the active PC app.
+- **SELECT TEXT** (Android): position the PC cursor at the start of the text, enable selection, then drag one finger on the pad. Lifting releases the mouse button. Disable selection to move normally.
+- **COPY / PASTE** (Android): sends Ctrl+C / Ctrl+V to the PC. The clipboard stays on the PC. These controls require the updated desktop app as well as the updated APK.
 
 The Android app is touch-only; gyro/air-mouse mode has been removed.
 
@@ -86,10 +89,11 @@ Messages are JSON objects sent through WebSocket. The examples below illustrate 
 | `scroll` | `{"type":"scroll","delta":0.15}` | Delta clamped to ±8 |
 | `click` | `{"type":"click","button":"left"}` | Only `left` and `right` accepted |
 | `key` | `{"type":"key","key":"playpause"}` or `{"type":"key","key":"enter"}` | Only allowlisted media keys and Enter accepted |
+| `button` | `{"type":"button","button":"left","action":"down"}` | Holds/releases left mouse button with `down` / `up` for selection |
 | `text` | `{"type":"text","text":"hello"}` | Text limited to 400 characters and sent to the active Windows app |
 | `ready` (server to client) | `{"type":"ready","resumeToken":"..."}` | Sent after authentication |
 
-Allowed keys: `enter`, `backspace`, `volumeup`, `volumedown`, `volumemute`, `playpause`, `next`, and `previous`. Text is limited to 400 characters per message. Payloads are limited to 1,024 bytes. More than 240 messages per second closes the connection. Malformed or unknown messages are ignored.
+Allowed keys: `enter`, `backspace`, `copy`, `paste`, `volumeup`, `volumedown`, `volumemute`, `playpause`, `next`, and `previous`. Text is limited to 400 characters per message. Payloads are limited to 1,024 bytes. More than 240 messages per second closes the connection. Malformed or unknown messages are ignored.
 
 Text uses Unicode `SendInput` events with the native `INPUT` union layout, including the larger mouse member required for correct structure sizing on 64-bit Windows. The helper reads UTF-8 JSON, checks the number of accepted events, and reports input failures through stderr. Enter and Backspace use virtual-key events. `tools/test-text-input.ps1` verifies real character delivery in a disposable Windows text box, including Unicode, special characters, incremental typing, Enter, Backspace, and newlines. Run it with `powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -File tools/test-text-input.ps1`; let its temporary window retain focus until it closes.
 
